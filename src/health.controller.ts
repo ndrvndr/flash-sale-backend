@@ -1,9 +1,15 @@
+import { InjectQueue } from '@nestjs/bullmq';
 import { Controller, Get, Param } from '@nestjs/common';
+import type { Queue } from 'bullmq';
+
 import { RedisService } from './redis/redis.service';
 
 @Controller('health')
 export class HealthController {
-  constructor(private readonly redisService: RedisService) {}
+  constructor(
+    private readonly redisService: RedisService,
+    @InjectQueue('orders-queue') private readonly ordersQueue: Queue,
+  ) { }
 
   @Get('redis')
   async checkRedis() {
@@ -28,5 +34,11 @@ export class HealthController {
   ) {
     const result = await this.redisService.tryReserveStock(eventId, userId);
     return { result };
+  }
+
+  @Get('test-queue')
+  async testQueue() {
+    const job = await this.ordersQueue.add('test-job', { message: 'hello from queue' });
+    return { jobId: job.id, message: 'Job added to queue' };
   }
 }
