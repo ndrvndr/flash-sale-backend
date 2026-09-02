@@ -7,9 +7,11 @@ export class OrdersProcessor extends WorkerHost {
   private readonly logger = new Logger(OrdersProcessor.name);
 
   async process(job: Job): Promise<any> {
-    this.logger.log(`Processing job ${job.id} with data: ${JSON.stringify(job.data)}`);
-
-    // Logic lengkap (simpan ke Postgres, generate payment link, dll) ditambahkan di Fase 7
+    if (job.name === 'create-order') {
+      const { bookingId, eventId, userId } = job.data;
+      this.logger.log(`Creating order: booking=${bookingId}, event=${eventId}, user=${userId}`);
+      // TODO Fase 7: simpan ke Postgres via Prisma, generate payment link
+    }
 
     return { processed: true };
   }

@@ -1,6 +1,8 @@
-import { Module } from '@nestjs/common';
 import { BullModule } from '@nestjs/bullmq';
+import { Module } from '@nestjs/common';
+import { OrdersController } from './orders.controller';
 import { OrdersProcessor } from './orders.processor';
+import { OrdersService } from './orders.service';
 
 @Module({
   imports: [
@@ -8,7 +10,8 @@ import { OrdersProcessor } from './orders.processor';
       name: 'orders-queue',
     }),
   ],
-  providers: [OrdersProcessor],
+  controllers: [OrdersController],
+  providers: [OrdersProcessor, OrdersService],
   exports: [BullModule],
 })
 export class OrdersModule {}
