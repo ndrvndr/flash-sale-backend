@@ -3,6 +3,7 @@ import { Controller, Get, Param } from '@nestjs/common';
 import type { Queue } from 'bullmq';
 
 import { RedisService } from './redis/redis.service';
+import { db } from './prisma/db';
 
 @Controller('health')
 export class HealthController {
@@ -40,5 +41,21 @@ export class HealthController {
   async testQueue() {
     const job = await this.ordersQueue.add('test-job', { message: 'hello from queue' });
     return { jobId: job.id, message: 'Job added to queue' };
+  }
+
+  @Get('seed-test-data')
+  async seedTestData() {
+    const user = await db.orm.public.User.create({
+      email: `test-${Date.now()}@example.com`,
+      password: 'dummy-hashed-password',
+    });
+
+    const event = await db.orm.public.Event.create({
+      title: 'Test Flash Sale Event',
+      totalStock: 10,
+      price: '100000',
+    });
+
+    return { user, event };
   }
 }
