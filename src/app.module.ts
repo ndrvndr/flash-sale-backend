@@ -4,12 +4,15 @@ import { PrismaService } from "./prisma.service";
 
 import { UsersController } from "./users.controller";
 import { UsersService } from "./users.service";
+import { RedisModule } from './redis/redis.module';
+import { HealthController } from "./health.controller";
 
 @Module({
-  imports: [],
+  imports: [RedisModule],
   controllers: [
     AppController,
-    UsersController
+    UsersController,
+    HealthController,
   ],
   providers: [
     PrismaService,

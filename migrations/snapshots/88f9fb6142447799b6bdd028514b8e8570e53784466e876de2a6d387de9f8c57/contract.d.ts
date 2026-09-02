@@ -33,7 +33,7 @@ import type {
 } from '@prisma/orm-postgres/contract/types';
 
 export type StorageHash =
-  StorageHashBase<'87c1dfe219686af94003b58ebf73e1348edcef9b62eabb8188e96b41fa27577e'>;
+  StorageHashBase<'88f9fb6142447799b6bdd028514b8e8570e53784466e876de2a6d387de9f8c57'>;
 export type ExecutionHash =
   ExecutionHashBase<'f4cbe5e025d3ddc88058308f79269b42282b9a883dc65ec5fd051cb7b93e2f1c'>;
 export type ProfileHash =
@@ -246,7 +246,6 @@ export type FieldOutputTypes = {
       readonly title: CodecTypes['pg/text@1']['output'];
       readonly totalStock: CodecTypes['pg/int4@1']['output'];
       readonly price: CodecTypes['pg/numeric@1']['output'];
-      readonly reservedStock: CodecTypes['pg/int4@1']['output'];
     };
     readonly Order: {
       readonly id: CodecTypes['pg/text@1']['output'];
@@ -256,9 +255,6 @@ export type FieldOutputTypes = {
       readonly snapToken: CodecTypes['pg/text@1']['output'] | null;
       readonly paymentUrl: CodecTypes['pg/text@1']['output'] | null;
       readonly createdAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
-      readonly reservedAt: CodecTypes['pg/timestamptz-temporal@1']['output'] | null;
-      readonly expiresAt: CodecTypes['pg/timestamptz-temporal@1']['output'] | null;
-      readonly paymentGatewayRef: CodecTypes['pg/text@1']['output'] | null;
     };
     readonly User: {
       readonly id: CodecTypes['pg/text@1']['output'];
@@ -274,7 +270,6 @@ export type FieldInputTypes = {
       readonly title: CodecTypes['pg/text@1']['input'];
       readonly totalStock: CodecTypes['pg/int4@1']['input'];
       readonly price: CodecTypes['pg/numeric@1']['input'];
-      readonly reservedStock: CodecTypes['pg/int4@1']['input'];
     };
     readonly Order: {
       readonly id: CodecTypes['pg/text@1']['input'];
@@ -284,9 +279,6 @@ export type FieldInputTypes = {
       readonly snapToken: CodecTypes['pg/text@1']['input'] | null;
       readonly paymentUrl: CodecTypes['pg/text@1']['input'] | null;
       readonly createdAt: CodecTypes['pg/timestamptz-temporal@1']['input'];
-      readonly reservedAt: CodecTypes['pg/timestamptz-temporal@1']['input'] | null;
-      readonly expiresAt: CodecTypes['pg/timestamptz-temporal@1']['input'] | null;
-      readonly paymentGatewayRef: CodecTypes['pg/text@1']['input'] | null;
     };
     readonly User: {
       readonly id: CodecTypes['pg/text@1']['input'];
@@ -300,18 +292,14 @@ export type StorageColumnTypes = {
     readonly event: {
       readonly id: CodecTypes['pg/text@1']['output'];
       readonly price: CodecTypes['pg/numeric@1']['output'];
-      readonly reservedStock: CodecTypes['pg/int4@1']['output'];
       readonly title: CodecTypes['pg/text@1']['output'];
       readonly totalStock: CodecTypes['pg/int4@1']['output'];
     };
     readonly order: {
       readonly createdAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
       readonly eventId: CodecTypes['pg/text@1']['output'];
-      readonly expiresAt: CodecTypes['pg/timestamptz-temporal@1']['output'] | null;
       readonly id: CodecTypes['pg/text@1']['output'];
-      readonly paymentGatewayRef: CodecTypes['pg/text@1']['output'] | null;
       readonly paymentUrl: CodecTypes['pg/text@1']['output'] | null;
-      readonly reservedAt: CodecTypes['pg/timestamptz-temporal@1']['output'] | null;
       readonly snapToken: CodecTypes['pg/text@1']['output'] | null;
       readonly status: 'PENDING' | 'PAID' | 'EXPIRED' | 'FAILED';
       readonly userId: CodecTypes['pg/text@1']['output'];
@@ -328,18 +316,14 @@ export type StorageColumnInputTypes = {
     readonly event: {
       readonly id: CodecTypes['pg/text@1']['input'];
       readonly price: CodecTypes['pg/numeric@1']['input'];
-      readonly reservedStock: CodecTypes['pg/int4@1']['input'];
       readonly title: CodecTypes['pg/text@1']['input'];
       readonly totalStock: CodecTypes['pg/int4@1']['input'];
     };
     readonly order: {
       readonly createdAt: CodecTypes['pg/timestamptz-temporal@1']['input'];
       readonly eventId: CodecTypes['pg/text@1']['input'];
-      readonly expiresAt: CodecTypes['pg/timestamptz-temporal@1']['input'] | null;
       readonly id: CodecTypes['pg/text@1']['input'];
-      readonly paymentGatewayRef: CodecTypes['pg/text@1']['input'] | null;
       readonly paymentUrl: CodecTypes['pg/text@1']['input'] | null;
-      readonly reservedAt: CodecTypes['pg/timestamptz-temporal@1']['input'] | null;
       readonly snapToken: CodecTypes['pg/text@1']['input'] | null;
       readonly status: 'PENDING' | 'PAID' | 'EXPIRED' | 'FAILED';
       readonly userId: CodecTypes['pg/text@1']['input'];
@@ -391,15 +375,6 @@ type ContractBase = Omit<
                   readonly codecId: 'pg/numeric@1';
                   readonly nullable: false;
                 };
-                readonly reservedStock: {
-                  readonly nativeType: 'int4';
-                  readonly codecId: 'pg/int4@1';
-                  readonly nullable: false;
-                  readonly default: {
-                    readonly kind: 'literal';
-                    readonly value: DefaultLiteralValue<'pg/int4@1', 0>;
-                  };
-                };
               };
               primaryKey: { readonly columns: readonly ['id'] };
               uniques: readonly [];
@@ -447,21 +422,6 @@ type ContractBase = Omit<
                   readonly codecId: 'pg/timestamptz-temporal@1';
                   readonly nullable: false;
                   readonly default: { readonly kind: 'function'; readonly expression: 'now()' };
-                };
-                readonly reservedAt: {
-                  readonly nativeType: 'timestamptz';
-                  readonly codecId: 'pg/timestamptz-temporal@1';
-                  readonly nullable: true;
-                };
-                readonly expiresAt: {
-                  readonly nativeType: 'timestamptz';
-                  readonly codecId: 'pg/timestamptz-temporal@1';
-                  readonly nullable: true;
-                };
-                readonly paymentGatewayRef: {
-                  readonly nativeType: 'text';
-                  readonly codecId: 'pg/text@1';
-                  readonly nullable: true;
                 };
               };
               primaryKey: { readonly columns: readonly ['id'] };
@@ -573,10 +533,6 @@ type ContractBase = Omit<
                 readonly nullable: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/numeric@1' };
               };
-              readonly reservedStock: {
-                readonly nullable: false;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
-              };
             };
             readonly relations: {
               readonly orders: {
@@ -599,7 +555,6 @@ type ContractBase = Omit<
                 readonly title: { readonly column: 'title' };
                 readonly totalStock: { readonly column: 'totalStock' };
                 readonly price: { readonly column: 'price' };
-                readonly reservedStock: { readonly column: 'reservedStock' };
               };
             };
           };
@@ -636,24 +591,6 @@ type ContractBase = Omit<
                   readonly codecId: 'pg/timestamptz-temporal@1';
                 };
               };
-              readonly reservedAt: {
-                readonly nullable: true;
-                readonly type: {
-                  readonly kind: 'scalar';
-                  readonly codecId: 'pg/timestamptz-temporal@1';
-                };
-              };
-              readonly expiresAt: {
-                readonly nullable: true;
-                readonly type: {
-                  readonly kind: 'scalar';
-                  readonly codecId: 'pg/timestamptz-temporal@1';
-                };
-              };
-              readonly paymentGatewayRef: {
-                readonly nullable: true;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
-              };
             };
             readonly relations: {
               readonly event: {
@@ -687,9 +624,6 @@ type ContractBase = Omit<
                 readonly snapToken: { readonly column: 'snapToken' };
                 readonly paymentUrl: { readonly column: 'paymentUrl' };
                 readonly createdAt: { readonly column: 'createdAt' };
-                readonly reservedAt: { readonly column: 'reservedAt' };
-                readonly expiresAt: { readonly column: 'expiresAt' };
-                readonly paymentGatewayRef: { readonly column: 'paymentGatewayRef' };
               };
             };
           };

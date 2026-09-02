@@ -1,21 +1,40 @@
 // use prisma-next
 
 model User {
-  id        Int      @id @default(autoincrement())
-  email     String   @unique
-  username  String?
-  name      String?
-  posts     Post[]
-  createdAt TimestamptzString @default(now())
-  updatedAt temporal.updatedAtString()
+  id          String   @id @default(uuid())
+  email       String   @unique
+  password    String
+  orders      Order[]
 }
 
-model Post {
-  id        Int      @id @default(autoincrement())
-  title     String
-  content   String?
-  author    User     @relation(fields: [authorId], references: [id])
-  authorId  Int
-  createdAt TimestamptzString @default(now())
-  updatedAt temporal.updatedAtString()
+model Event {
+  id            String   @id @default(uuid())
+  title         String
+  totalStock    Int
+  price         Decimal
+  orders        Order[]
+  reservedStock Int @default(0)
+}
+
+model Order {
+  id                String      @id @default(uuid())
+  userId            String
+  eventId           String
+  status            OrderStatus @default(PENDING)
+  snapToken         String?
+  paymentUrl        String?
+  createdAt         DateTime    @default(now())
+  reservedAt        DateTime?
+  expiresAt         DateTime?
+  paymentGatewayRef String?
+
+  user        User        @relation(fields: [userId], references: [id])
+  event       Event       @relation(fields: [eventId], references: [id])
+}
+
+enum OrderStatus {
+  PENDING
+  PAID
+  EXPIRED
+  FAILED
 }
