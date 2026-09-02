@@ -3,6 +3,7 @@ import { Module } from '@nestjs/common';
 import { OrdersController } from './orders.controller';
 import { OrdersProcessor } from './orders.processor';
 import { OrdersService } from './orders.service';
+import { WebhooksController } from './webhooks.controller';
 
 @Module({
   imports: [
@@ -10,7 +11,7 @@ import { OrdersService } from './orders.service';
       name: 'orders-queue',
     }),
   ],
-  controllers: [OrdersController],
+  controllers: [OrdersController, WebhooksController],
   providers: [OrdersProcessor, OrdersService],
   exports: [BullModule],
 })

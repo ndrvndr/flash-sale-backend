@@ -86,4 +86,8 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
   async initStock(eventId: string, totalStock: number): Promise<void> {
     await this.client.set(`stock:event_${eventId}`, totalStock);
   }
+
+  async del(key: string): Promise<void> {
+    await this.client.del(key);
+  }
 }
