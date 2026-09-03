@@ -1,7 +1,9 @@
-import { Processor, WorkerHost, OnWorkerEvent } from '@nestjs/bullmq';
+import { OnWorkerEvent, Processor, WorkerHost } from '@nestjs/bullmq';
 import { Logger } from '@nestjs/common';
 import type { Job } from 'bullmq';
 import { randomUUID } from 'crypto';
+import { Temporal } from 'temporal-polyfill';
+
 import { db } from '../prisma/db';
 
 interface CreateOrderJobData {
@@ -28,6 +30,8 @@ export class OrdersProcessor extends WorkerHost {
 
     const mockSnapToken = randomUUID();
     const mockPaymentUrl = `https://mock-payment.local/pay/${mockSnapToken}`;
+    const now = Temporal.Now.instant();
+    const expiresAt = now.add({ minutes: 5 });
 
     const order = await db.orm.public.Order.create({
       id: bookingId,
@@ -36,9 +40,11 @@ export class OrdersProcessor extends WorkerHost {
       status: 'PENDING',
       snapToken: mockSnapToken,
       paymentUrl: mockPaymentUrl,
+      reservedAt: now,
+      expiresAt,
     });
 
-    this.logger.log(`Order created in DB: id=${order.id}, paymentUrl=${mockPaymentUrl}`);
+    this.logger.log(`Order created in DB: id=${order.id}, paymentUrl=${mockPaymentUrl}, expiresAt=${expiresAt.toString()}`);
     return { orderId: order.id, paymentUrl: mockPaymentUrl };
   }
 

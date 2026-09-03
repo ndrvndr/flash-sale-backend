@@ -1,9 +1,10 @@
 import { InjectQueue } from '@nestjs/bullmq';
 import { Controller, Get, Param } from '@nestjs/common';
 import type { Queue } from 'bullmq';
+import { Temporal } from 'temporal-polyfill';
 
-import { RedisService } from './redis/redis.service';
 import { db } from './prisma/db';
+import { RedisService } from './redis/redis.service';
 
 @Controller('health')
 export class HealthController {
@@ -57,5 +58,19 @@ export class HealthController {
     });
 
     return { user, event };
+  }
+
+  @Get('test-expired-order/:eventId/:userId')
+  async createExpiredTestOrder(
+    @Param('eventId') eventId: string,
+    @Param('userId') userId: string,
+  ) {
+    const order = await db.orm.public.Order.create({
+      userId,
+      eventId,
+      status: 'PENDING',
+      expiresAt: Temporal.Now.instant().subtract({ minutes: 1 }), // sudah expired 1 menit lalu
+    });
+    return order;
   }
 }

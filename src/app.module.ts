@@ -1,5 +1,6 @@
 import { BullModule } from '@nestjs/bullmq';
 import { Module } from "@nestjs/common";
+import { ScheduleModule } from '@nestjs/schedule';
 
 import { AppController } from "./app.controller";
 import { HealthController } from "./health.controller";
@@ -18,6 +19,7 @@ import { UsersService } from "./users.service";
       },
     }),
     OrdersModule,
+    ScheduleModule.forRoot(),
   ],
   controllers: [
     AppController,
