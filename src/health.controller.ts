@@ -73,4 +73,38 @@ export class HealthController {
     });
     return order;
   }
+
+  @Get('seed-load-test/:count')
+  async seedLoadTest(@Param('count') count: string) {
+    const total = parseInt(count);
+    const users = [];
+
+    for (let i = 0; i < total; i++) {
+      const user = await db.orm.public.User.create({
+        email: `loadtest-${Date.now()}-${i}@example.com`,
+        password: 'dummy-hashed-password',
+      });
+      users.push(user.id);
+    }
+
+    const event = await db.orm.public.Event.create({
+      title: 'Load Test Flash Sale',
+      totalStock: 5,
+      price: '50000',
+    });
+
+    return { eventId: event.id, userIds: users };
+  }
+
+  @Get('orders-count/:eventId')
+  async ordersCount(@Param('eventId') eventId: string) {
+    const orders = await db.orm.public.Order.where({ eventId }).all();
+    return {
+      total: orders.length,
+      statuses: orders.reduce((acc: Record<string, number>, o) => {
+        acc[o.status] = (acc[o.status] ?? 0) + 1;
+        return acc;
+      }, {}),
+    };
+  }
 }
