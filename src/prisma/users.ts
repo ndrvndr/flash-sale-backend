@@ -5,14 +5,11 @@ export { db };
 
 export async function listUsers(limit = 10) {
   await seed();
-  const users = await db.orm.public.User.select("id", "email", "username", "name", "createdAt").limit(limit).all();
+  const users = await db.orm.public.User.select("id", "email").limit(limit).all();
 
   return users.map((user) => ({
     id: String(user.id),
     email: user.email,
-    username: user.username ?? null,
-    name: user.name ?? null,
-    createdAt: user.createdAt,
   }));
 }
 
