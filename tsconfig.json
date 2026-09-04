@@ -15,7 +15,8 @@
     "experimentalDecorators": true,
     "outDir": "dist",
     "types": [
-      "node"
+      "node",
+      "@types/bun"
     ]
   },
   "include": ["src/**/*.ts"]

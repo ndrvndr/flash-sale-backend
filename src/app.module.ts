@@ -5,10 +5,7 @@ import { ScheduleModule } from '@nestjs/schedule';
 import { AppController } from "./app.controller";
 import { HealthController } from "./health.controller";
 import { OrdersModule } from './orders/orders.module';
-import { PrismaService } from "./prisma.service";
 import { RedisModule } from './redis/redis.module';
-import { UsersController } from "./users.controller";
-import { UsersService } from "./users.service";
 
 @Module({
   imports: [
@@ -23,12 +20,8 @@ import { UsersService } from "./users.service";
   ],
   controllers: [
     AppController,
-    UsersController,
     HealthController,
   ],
-  providers: [
-    PrismaService,
-    UsersService
-  ],
+  providers: [],
 })
 export class AppModule {}

@@ -45,6 +45,7 @@
     "temporal-polyfill": "^1.0.4"
   },
   "devDependencies": {
+    "@types/bun": "^1.4.0",
     "@types/ioredis": "^5.0.0",
     "@types/node": "^25.6.2",
     "prisma": "latest",

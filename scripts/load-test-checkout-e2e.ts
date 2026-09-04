@@ -1,6 +1,6 @@
 /**
  * Load test end-to-end: Checkout -> Redis lock -> BullMQ -> Postgres
- * Jalankan dengan: bun run test-checkout-load.ts
+ * Run with: bun run test-checkout-load.ts
  */
 
 const BASE_URL = 'http://localhost:3000';
@@ -42,7 +42,7 @@ const USER_IDS = [
 const EXPECTED_STOCK = 5;
 
 async function main() {
-  console.log(`Mengirim ${USER_IDS.length} request checkout PARALEL ke event ${EVENT_ID}...`);
+  console.log(`Send ${USER_IDS.length} PARALLEL checkout request to event ${EVENT_ID}...`);
 
   const requests = USER_IDS.map((userId) =>
     fetch(`${BASE_URL}/events/${EVENT_ID}/checkout`, {
@@ -59,41 +59,43 @@ async function main() {
 
   const results = await Promise.all(requests);
 
-  console.log('\nContoh 3 response pertama untuk debug:');
+  console.log('\nExamples of the first 3 responses for debugging:');
   console.log(JSON.stringify(results.slice(0, 3), null, 2));
 
   const accepted = results.filter((r) => r.statusCode === 202);
   const conflict = results.filter((r) => r.statusCode === 409);
   const other = results.filter((r) => r.statusCode !== 202 && r.statusCode !== 409);
 
-  console.log('\n=== HASIL CHECKOUT (LAYER REDIS + API) ===');
+  console.log('\n=== Checkout Results (Redis Layer + API) ===');
   console.log(`Total request        : ${USER_IDS.length}`);
-  console.log(`Stok tersedia         : ${EXPECTED_STOCK}`);
-  console.log(`202 Accepted          : ${accepted.length}`);
-  console.log(`409 Conflict          : ${conflict.length}`);
-  console.log(`Lainnya               : ${other.length}`);
+  console.log(`In stock             : ${EXPECTED_STOCK}`);
+  console.log(`202 Accepted         : ${accepted.length}`);
+  console.log(`409 Conflict         : ${conflict.length}`);
+  console.log(`Other                : ${other.length}`);
 
   if (accepted.length !== EXPECTED_STOCK) {
-    console.log(`\n❌ FAIL — seharusnya 202 Accepted = ${EXPECTED_STOCK}, tapi hasilnya ${accepted.length}`);
+    console.log(`\n❌ FAIL — expected 202 Accepted = ${EXPECTED_STOCK}, but got ${accepted.length}`);
     return;
   }
-  console.log('✅ Layer Redis/API PASS');
+  console.log('✅ Redis Layer/API PASS');
 
-  console.log('\nMenunggu worker memproses semua job ke Postgres (5 detik)...');
+  console.log('\nWaiting for the worker to process all jobs to Postgres (5 seconds)...');
   await new Promise((resolve) => setTimeout(resolve, 5000));
 
-  console.log('\nCek endpoint /health/orders-count/:eventId untuk verifikasi jumlah order tersimpan...');
+  console.log('\nCheck the /health/orders-count/:eventId endpoint to verify the number of stored orders...');
   const countRes = await fetch(`${BASE_URL}/health/orders-count/${EVENT_ID}`);
   const countData = await countRes.json();
 
-  console.log('\n=== HASIL VERIFIKASI POSTGRES ===');
+  console.log('\n=== Postgres Verification Results ===');
   console.log(JSON.stringify(countData, null, 2));
 
   if (countData.total === EXPECTED_STOCK) {
-    console.log(`\n✅ PASS TOTAL — jumlah order di Postgres (${countData.total}) tepat sama dengan stok (${EXPECTED_STOCK}). Tidak ada race condition end-to-end.`);
+    console.log(`\n✅ PASS TOTAL — the order count in Postgres (${countData.total}) exactly matches the stock (${EXPECTED_STOCK}). There are no end-to-end race conditions.`);
   } else {
-    console.log(`\n❌ FAIL — jumlah order di Postgres (${countData.total}) tidak sama dengan stok (${EXPECTED_STOCK})!`);
+    console.log(`\n❌ FAIL — the order count in Postgres (${countData.total}) does not match the stock (${EXPECTED_STOCK})!`);
   }
 }
 
 main();
+
+export {};

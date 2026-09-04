@@ -25,7 +25,7 @@ export class OrdersService {
       throw new ConflictException('Stok habis');
     }
 
-    // reserveResult === 'ok' -> lanjut push ke queue
+    // reserveResult === 'ok' -> proceed to push to the queue
     const bookingId = randomUUID();
 
     await this.ordersQueue.add('create-order', {
@@ -37,12 +37,12 @@ export class OrdersService {
     return {
       bookingId,
       status: 'PENDING',
-      message: 'Checkout berhasil, pesanan sedang diproses',
+      message: 'Checkout successful, order is being processed.',
     };
   }
 
   async handlePaymentWebhook(bookingId: string, status: string, signature: string) {
-    // Mock signature verification — nanti diganti verifikasi asli dari Midtrans/Stripe di Fase 8-lanjutan
+    // Mock signature verification — it will later be replaced with actual verification from Midtrans/Stripe.
     const MOCK_SECRET = 'mock-webhook-secret';
     if (signature !== MOCK_SECRET) {
       throw new BadRequestException('Invalid signature');
@@ -54,7 +54,7 @@ export class OrdersService {
       throw new BadRequestException(`Order ${bookingId} not found`);
     }
 
-    // Idempotency check — kalau sudah PAID, jangan proses ulang
+    // Idempotency check — if it has already been paid, do not process it again.
     if (order.status === 'PAID') {
       return { message: 'Order already processed', order };
     }
@@ -67,10 +67,10 @@ export class OrdersService {
           paymentGatewayRef: `mock-ref-${Date.now()}`,
         });
 
-      // Hapus reservation key di Redis — stok resmi terjual, tidak perlu dikembalikan
+      // Delete the reservation key in Redis — the stock is officially sold; no need to return it.
       await this.redisService.del(`reservation:event_${order.eventId}:user_${order.userId}`);
 
-      // TODO Fase berikutnya: trigger job generate PDF e-ticket / kirim email
+      // TODO: trigger job to generate PDF e-ticket / send email
 
       return { message: 'Payment confirmed', order: updatedOrder };
     }
@@ -80,7 +80,7 @@ export class OrdersService {
         .where({ id: bookingId })
         .update({ status: 'FAILED' });
 
-      // Kembalikan stok karena pembayaran gagal
+      // Return stock due to failed payment
       await this.redisService.client.incr(`stock:event_${order.eventId}`);
       await this.redisService.del(`reservation:event_${order.eventId}:user_${order.userId}`);
 

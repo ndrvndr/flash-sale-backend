@@ -72,7 +72,7 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
 
     const result = await this.client.eval(
       this.decrementStockScript,
-      2, // jumlah KEYS
+      2, // number of keys
       stockKey,
       reservationKey,
       ttlSeconds,

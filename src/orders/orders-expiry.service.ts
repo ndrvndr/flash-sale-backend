@@ -31,10 +31,10 @@ export class OrdersExpiryService {
         .where({ id: order.id })
         .update({ status: 'EXPIRED' });
 
-      // Kembalikan stok ke Redis
+      // Return stock to Redis
       await this.redisService.client.incr(`stock:event_${order.eventId}`);
 
-      // Hapus reservation key
+      // Delete reservation key
       await this.redisService.del(`reservation:event_${order.eventId}:user_${order.userId}`);
 
       this.logger.log(`Order ${order.id} expired, stock released for event ${order.eventId}`);

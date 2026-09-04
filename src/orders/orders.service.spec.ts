@@ -54,14 +54,26 @@ describe('OrdersService', () => {
       mockRedisService.tryReserveStock = mock(() => Promise.resolve('sold_out'));
       service = new OrdersService(mockRedisService as any, mockQueue as any);
 
-      await expect(service.checkout('event-1', 'user-1')).rejects.toThrow(ConflictException);
+      let error: unknown;
+      try {
+        await service.checkout('event-1', 'user-1');
+      } catch (e) {
+        error = e;
+      }
+      expect(error).toBeInstanceOf(ConflictException);
     });
 
     it('throws NotFoundException when the event does not exist', async () => {
       mockRedisService.tryReserveStock = mock(() => Promise.resolve('not_found'));
       service = new OrdersService(mockRedisService as any, mockQueue as any);
 
-      await expect(service.checkout('event-x', 'user-1')).rejects.toThrow(NotFoundException);
+      let error: unknown;
+      try {
+        await service.checkout('event-x', 'user-1');
+      } catch (e) {
+        error = e;
+      }
+      expect(error).toBeInstanceOf(NotFoundException);
     });
 
     it('pushes a job to the queue and returns a bookingId when the reservation succeeds', async () => {
@@ -80,9 +92,13 @@ describe('OrdersService', () => {
 
   describe('handlePaymentWebhook', () => {
     it('throws BadRequestException when the signature is invalid', async () => {
-      await expect(
-        service.handlePaymentWebhook('booking-1', 'success', 'wrong-signature'),
-      ).rejects.toThrow(BadRequestException);
+      let error: unknown;
+      try {
+        await service.handlePaymentWebhook('booking-1', 'success', 'wrong-signature');
+      } catch (e) {
+        error = e;
+      }
+      expect(error).toBeInstanceOf(BadRequestException);
     });
 
     it('throws BadRequestException when the order is not found', async () => {
@@ -91,9 +107,13 @@ describe('OrdersService', () => {
         update: mock(() => Promise.resolve({})),
       } as any);
 
-      await expect(
-        service.handlePaymentWebhook('booking-x', 'success', 'mock-webhook-secret'),
-      ).rejects.toThrow(BadRequestException);
+      let error: unknown;
+      try {
+        await service.handlePaymentWebhook('booking-x', 'success', 'mock-webhook-secret');
+      } catch (e) {
+        error = e;
+      }
+      expect(error).toBeInstanceOf(BadRequestException);
     });
 
     it('does not reprocess an order that is already PAID (idempotency)', async () => {
