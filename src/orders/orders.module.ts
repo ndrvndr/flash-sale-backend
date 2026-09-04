@@ -1,6 +1,7 @@
 import { BullModule } from '@nestjs/bullmq';
 import { Module } from '@nestjs/common';
 
+import { PaymentModule } from '../payment/payment.module';
 import { OrdersExpiryService } from './orders-expiry.service';
 import { OrdersController } from './orders.controller';
 import { OrdersProcessor } from './orders.processor';
@@ -12,6 +13,7 @@ import { WebhooksController } from './webhooks.controller';
     BullModule.registerQueue({
       name: 'orders-queue',
     }),
+    PaymentModule,
   ],
   controllers: [OrdersController, WebhooksController],
   providers: [OrdersProcessor, OrdersService, OrdersExpiryService],
