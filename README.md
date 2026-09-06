@@ -76,10 +76,10 @@ Rather than just claiming the system is race-condition-safe, here's the actual t
 **30 concurrent checkout requests** sent simultaneously against an event with **5 units of stock**:
 
 ```
-Total requests        : 30
-Stock available        : 5
+Total requests          : 30
+Stock available         : 5
 202 Accepted            : 5
-409 Conflict             : 25
+409 Conflict            : 25
 ```
 
 After the queue drained, the number of `Order` rows in PostgreSQL was verified:

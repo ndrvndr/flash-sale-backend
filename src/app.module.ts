@@ -1,12 +1,11 @@
-import { BullModule } from '@nestjs/bullmq';
+import { BullModule } from "@nestjs/bullmq";
 import { Module } from "@nestjs/common";
-import { ScheduleModule } from '@nestjs/schedule';
+import { ScheduleModule } from "@nestjs/schedule";
 
-import { AppController } from "./app.controller";
-import { AuthModule } from './auth/auth.module';
+import { AuthModule } from "./auth/auth.module";
 import { HealthController } from "./health.controller";
-import { OrdersModule } from './orders/orders.module';
-import { RedisModule } from './redis/redis.module';
+import { OrdersModule } from "./orders/orders.module";
+import { RedisModule } from "./redis/redis.module";
 
 @Module({
   imports: [
@@ -20,10 +19,7 @@ import { RedisModule } from './redis/redis.module';
     ScheduleModule.forRoot(),
     AuthModule,
   ],
-  controllers: [
-    AppController,
-    HealthController,
-  ],
+  controllers: [HealthController],
   providers: [],
 })
 export class AppModule {}
