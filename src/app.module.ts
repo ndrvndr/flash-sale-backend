@@ -3,6 +3,7 @@ import { Module } from "@nestjs/common";
 import { ScheduleModule } from "@nestjs/schedule";
 
 import { AuthModule } from "./auth/auth.module";
+import { EventsModule } from "./events/events.module";
 import { HealthController } from "./health.controller";
 import { OrdersModule } from "./orders/orders.module";
 import { RedisModule } from "./redis/redis.module";
@@ -18,6 +19,7 @@ import { RedisModule } from "./redis/redis.module";
     OrdersModule,
     ScheduleModule.forRoot(),
     AuthModule,
+    EventsModule,
   ],
   controllers: [HealthController],
   providers: [],

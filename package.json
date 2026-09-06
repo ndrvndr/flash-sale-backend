@@ -24,7 +24,8 @@
     "skills:sync": "prisma skills sync || exit 0",
     "start": "node dist/server.mjs",
     "postinstall": "prisma skills sync || exit 0",
-    "test": "bun test"
+    "test": "bun test",
+    "seed": "bun run scripts/seed-events.ts"
   },
   "dependencies": {
     "@nestjs/bullmq": "^12.0.0",
