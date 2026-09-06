@@ -1,6 +1,6 @@
 # Flash Sale Backend
 
-A high-concurrency ticket flash sale engine built to solve one core problem: **preventing overselling when hundreds of users try to buy the last few tickets at the same millisecond.**
+A ticket flash sale backend designed around one core problem: **preventing overselling when many users try to buy the last few tickets at the same time.**
 
 Built with NestJS, PostgreSQL, Redis, and BullMQ — with real payment gateway integration (Midtrans), JWT authentication, and interactive API docs (Swagger).
 
@@ -63,7 +63,7 @@ Instead of writing directly to PostgreSQL on every checkout attempt, this system
 ### Checkout flow, step by step
 
 1. **User initiates checkout** — authenticated via JWT, `userId` extracted from the token (never trusted from the request body).
-2. **Redis atomic lock** — a Lua script checks stock and decrements it in one indivisible operation, then sets a reservation key with a 5-minute TTL. If stock is `0`, the request fails fast (`409 Conflict`) in under 10ms without touching the database.
+2. **Redis atomic lock** — a Lua script checks stock and decrements it in one indivisible operation, then sets a reservation key with a 5-minute TTL. If stock is `0`, the request fails fast with a `409 Conflict` without ever touching the database.
 3. **Job dispatched to BullMQ** — the API responds immediately with `202 Accepted` and a `bookingId`. The client doesn't wait for the database write.
 4. **Background worker processes the job** — creates a Midtrans Snap transaction, persists the order to PostgreSQL with status `PENDING`.
 5. **Payment webhook** — Midtrans notifies the backend when payment succeeds or fails. The signature is verified (SHA512) before any state change, and the handler is idempotent — a duplicate webhook won't double-process an order.
@@ -88,9 +88,11 @@ Stock available  : 5
 Orders confirmed to exist: 5 / 5
 ```
 
-**Result: exactly 5 successful checkouts, no more, no less** — verified from the authenticated API layer, through the Redis lock, all the way to the database. No oversells, no lost reservations, no auth bypass.
+**Result: exactly 5 successful checkouts, no more, no less** — verified from the authenticated API layer, through the Redis lock, all the way to the database. No oversells, no lost reservations, and every order correctly attributed to its authenticated owner.
 
 This test is fully scripted and reproducible — see [`scripts/load-test-checkout-e2e.ts`](./scripts/load-test-checkout-e2e.ts).
+
+**Scope of this test:** it verifies correctness of the concurrency logic under normal operating conditions — all services (Redis, Postgres, the BullMQ worker) are healthy throughout. It does not simulate failure scenarios such as a Redis disconnect mid-request, a worker crashing before persisting an order, or BullMQ's retry behavior under partial failures. Validating those paths is listed under [Future Improvements](#future-improvements).
 
 ## Proof: Real Payment Gateway Integration
 
@@ -344,6 +346,7 @@ enum OrderStatus {
 
 These were deliberately scoped out of the MVP to keep focus on the core concurrency problem, but are natural next steps:
 
+- **Failure-scenario testing** — the concurrency test above only covers the happy path (all services healthy). Worth validating explicitly: what happens to a reservation if Redis disconnects mid-checkout, if the worker crashes after locking stock but before persisting the order, or if a BullMQ job exhausts its retries — does the reservation get released, or does it leak?
 - **Role-based access control** — restrict `POST /events` to admin users only
 - **Rate limiting per user** — prevent a single user from spamming checkout requests
 - **PDF e-ticket generation & email delivery** — triggered as a follow-up BullMQ job after payment confirmation
@@ -354,4 +357,4 @@ These were deliberately scoped out of the MVP to keep focus on the core concurre
 
 ## Why This Project
 
-This project was built to demonstrate a specific, well-known distributed systems problem — race conditions under high concurrency — and to prove, not just claim, that the chosen solution (Redis atomic operations + async queue + eventual database consistency) actually works under load, across the full authenticated stack, with a real payment gateway integration verified end-to-end.
+This project was built to demonstrate a specific, well-known distributed systems problem — race conditions under concurrent access — and to prove, not just claim, that the chosen solution (Redis atomic operations + async queue + eventual database consistency) actually works, across the full authenticated stack, with a real payment gateway integration verified end-to-end. Testing so far covers correctness under normal conditions at a moderate concurrency level (30 simultaneous requests); it does not constitute a large-scale load or stress test — see [Future Improvements](#future-improvements).
