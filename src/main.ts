@@ -22,6 +22,11 @@ async function bootstrap() {
     .setDescription("High-concurrency ticket flash sale engine")
     .setVersion("1.0")
     .addBearerAuth()
+    .addTag("Auth")
+    .addTag("Events")
+    .addTag("Orders")
+    .addTag("Webhooks")
+    .addTag("Health")
     .build();
 
   const document = SwaggerModule.createDocument(app, swaggerConfig);
