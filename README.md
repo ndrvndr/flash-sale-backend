@@ -69,27 +69,28 @@ Instead of writing directly to PostgreSQL on every checkout attempt, this system
 5. **Payment webhook** — Midtrans notifies the backend when payment succeeds or fails. The signature is verified (SHA512) before any state change, and the handler is idempotent — a duplicate webhook won't double-process an order.
 6. **Expiry cron job** — runs every minute, finds orders that passed their 5-minute payment window, marks them `EXPIRED`, and releases the stock back to Redis so other users can buy it.
 
-## Proof: Concurrency Test Results
+## Proof: Full-Stack Concurrency Test
 
-Rather than just claiming the system is race-condition-safe, here's the actual test:
+Rather than just claiming the system is race-condition-safe, here's an actual, reproducible test that exercises the **entire stack** — not just Redis in isolation:
 
-**30 concurrent checkout requests** sent simultaneously against an event with **5 units of stock**:
-
-```
-Total requests          : 30
-Stock available         : 5
-202 Accepted            : 5
-409 Conflict            : 25
-```
-
-After the queue drained, the number of `Order` rows in PostgreSQL was verified:
+1. **30 real users** are registered via `POST /auth/register`, each receiving their own JWT.
+2. A **fresh event** with **5 units of stock** is created dynamically via `POST /events`.
+3. All 30 users send a `POST /events/:id/checkout` request **at the same time**, each authenticated with their own token.
+4. After the queue drains, every accepted booking is independently verified to exist in PostgreSQL via `GET /orders/:id` (with per-user ownership checks).
 
 ```
-Orders in Postgres      : 5
-Status breakdown        : { PENDING: 5 }
+Total requests   : 30
+Stock available  : 5
+202 Accepted     : 5
+409 Conflict     : 25
+
+--- After the worker persists orders to Postgres ---
+Orders confirmed to exist: 5 / 5
 ```
 
-**Result: exactly 5 orders, no more, no less** — from the Redis layer all the way through to the database. No oversells, no lost reservations.
+**Result: exactly 5 successful checkouts, no more, no less** — verified from the authenticated API layer, through the Redis lock, all the way to the database. No oversells, no lost reservations, no auth bypass.
+
+This test is fully scripted and reproducible — see [`scripts/load-test-checkout-e2e.ts`](./scripts/load-test-checkout-e2e.ts).
 
 ## Proof: Real Payment Gateway Integration
 
@@ -291,7 +292,9 @@ SET stock:event_<eventId> 5
 # Unit tests (mocked Redis/queue/database — no external services needed)
 bun test
 
-# End-to-end concurrency load test (requires the dev server running)
+# Full-stack concurrency load test — registers real users, creates a fresh
+# event, and fires concurrent authenticated checkout requests
+# (requires the dev server running)
 bun run scripts/load-test-checkout-e2e.ts
 ```
 
@@ -351,4 +354,4 @@ These were deliberately scoped out of the MVP to keep focus on the core concurre
 
 ## Why This Project
 
-This project was built to demonstrate a specific, well-known distributed systems problem — race conditions under high concurrency — and to prove, not just claim, that the chosen solution (Redis atomic operations + async queue + eventual database consistency) actually works under load, with a real payment gateway integration verified end-to-end.
+This project was built to demonstrate a specific, well-known distributed systems problem — race conditions under high concurrency — and to prove, not just claim, that the chosen solution (Redis atomic operations + async queue + eventual database consistency) actually works under load, across the full authenticated stack, with a real payment gateway integration verified end-to-end.
